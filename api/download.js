@@ -1,3 +1,12 @@
+// Cobalt v10 API — community instances fallback
+const INSTANCES = [
+  'https://cobalt.api.lisek.world',
+  'https://co.wuk.sh',
+  'https://cobalt.urdh.dev',
+  'https://cobalt.canine.tools',
+  'https://cobalt.darkness.services',
+];
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -8,54 +17,69 @@ export default async function handler(req, res) {
   const { url, quality = '1080', audioOnly = false } = req.body;
   if (!url) return res.status(400).json({ error: 'URL is required' });
 
-  // Quality fallback chain
-  const qualities = audioOnly ? ['max'] : [quality, 'max', '1080', '720', '480'];
-  let lastError = null;
+  const body = {
+    url,
+    videoQuality: quality,
+    audioFormat: 'mp3',
+    downloadMode: audioOnly ? 'audio' : 'auto',
+    filenameStyle: 'pretty',
+  };
 
-  for (const q of qualities) {
+  let lastError = 'All instances failed';
+
+  for (const instance of INSTANCES) {
     try {
-      const response = await fetch('https://api.cobalt.tools/api/json', {
+      const response = await fetch(`${instance}/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({
-          url,
-          vQuality: q,
-          aFormat: 'mp3',
-          downloadMode: audioOnly ? 'audio' : 'auto',
-          isNoTTWatermark: true,
-        }),
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(12000),
       });
+
+      if (!response.ok) {
+        lastError = `HTTP ${response.status} from ${instance}`;
+        continue;
+      }
 
       const data = await response.json();
 
-      if (data.url) {
+      // Cobalt v10 response format
+      if (data.status === 'tunnel' || data.status === 'redirect') {
         return res.status(200).json({
           success: true,
           directUrl: data.url,
-          type: 'single',
-          quality: q,
+          filename: data.filename || 'video',
+          type: data.status,
         });
       }
 
-      if (data.picker && data.picker.length > 0) {
+      if (data.status === 'picker' && data.picker?.length > 0) {
         return res.status(200).json({
           success: true,
-          type: 'picker',
           directUrl: data.picker[0].url,
+          type: 'picker',
           formats: data.picker.map(item => ({
             url: item.url,
-            quality: item.quality || '',
-            type: 'video',
+            type: item.type,
+            thumb: item.thumb || '',
           })),
         });
       }
 
-      lastError = data.error || data.text || 'No URL returned';
+      if (data.status === 'error') {
+        lastError = data.error?.code || 'API error';
+        continue;
+      }
+
+      lastError = 'Unexpected response: ' + JSON.stringify(data).slice(0, 100);
+
     } catch (e) {
-      lastError = e.message;
+      lastError = e.name === 'TimeoutError'
+        ? `${instance} timed out`
+        : e.message;
     }
   }
 
