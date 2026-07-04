@@ -8,46 +8,44 @@ export default async function handler(req, res) {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'URL required' });
 
-  // Get metadata from oEmbed where possible
-  const platform = detectPlatform(url);
-  let meta = { title: '', thumb: '', duration: '', author: '', platform };
+  const platform =
+    /youtube\.com|youtu\.be/.test(url) ? 'youtube' :
+    /facebook\.com|fb\.watch/.test(url) ? 'facebook' :
+    /instagram\.com/.test(url) ? 'instagram' :
+    /tiktok\.com/.test(url) ? 'tiktok' :
+    /twitter\.com|x\.com/.test(url) ? 'twitter' :
+    /vimeo\.com/.test(url) ? 'vimeo' : 'web';
 
-  try {
-    if (platform === 'youtube') {
+  let title = '', thumb = '', author = '';
+
+  // YouTube metadata via oEmbed
+  if (platform === 'youtube') {
+    try {
       const ytId = (url.match(/(?:v=|youtu\.be\/)([^&\n?#]+)/) || [])[1];
       if (ytId) {
-        const oEmbed = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
-        const oe = await oEmbed.json();
-        meta.title = oe.title || '';
-        meta.thumb = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
-        meta.author = oe.author_name || '';
+        const oe = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
+        if (oe.ok) {
+          const d = await oe.json();
+          title  = d.title || '';
+          author = d.author_name || '';
+          thumb  = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+        }
       }
-    }
-  } catch(e) {}
+    } catch (e) {}
+  }
 
-  // Always return formats list
   const formats = platform === 'youtube' ? [
-    { id: '4k',    label: '4K Ultra HD', quality: '2160', type: 'video', ext: 'mp4' },
-    { id: '1080',  label: '1080p Full HD', quality: '1080', type: 'video', ext: 'mp4' },
-    { id: '720',   label: '720p HD',     quality: '720',  type: 'video', ext: 'mp4' },
-    { id: '480',   label: '480p SD',     quality: '480',  type: 'video', ext: 'mp4' },
-    { id: '360',   label: '360p',        quality: '360',  type: 'video', ext: 'mp4' },
-    { id: 'mp3',   label: 'MP3 Audio',   quality: 'max',  type: 'audio', ext: 'mp3' },
-    { id: 'm4a',   label: 'M4A Audio',   quality: 'max',  type: 'audio', ext: 'm4a' },
+    { quality: '2160', label: '4K Ultra HD',  ext: 'mp4', type: 'video' },
+    { quality: '1080', label: '1080p Full HD', ext: 'mp4', type: 'video' },
+    { quality: '720',  label: '720p HD',       ext: 'mp4', type: 'video' },
+    { quality: '480',  label: '480p',          ext: 'mp4', type: 'video' },
+    { quality: '360',  label: '360p',          ext: 'mp4', type: 'video' },
+    { quality: 'max',  label: 'MP3 Audio',     ext: 'mp3', type: 'audio' },
+    { quality: 'max',  label: 'M4A Audio',     ext: 'm4a', type: 'audio', aFormat: 'm4a' },
   ] : [
-    { id: 'best',  label: 'Best Quality', quality: 'max', type: 'video', ext: 'mp4' },
-    { id: 'mp3',   label: 'MP3 Audio',    quality: 'max', type: 'audio', ext: 'mp3' },
+    { quality: 'max', label: 'Best Quality', ext: 'mp4', type: 'video' },
+    { quality: 'max', label: 'MP3 Audio',    ext: 'mp3', type: 'audio' },
   ];
 
-  return res.status(200).json({ ...meta, formats });
-}
-
-function detectPlatform(url) {
-  if (/youtube\.com|youtu\.be/.test(url)) return 'youtube';
-  if (/facebook\.com|fb\.watch/.test(url)) return 'facebook';
-  if (/instagram\.com/.test(url)) return 'instagram';
-  if (/tiktok\.com/.test(url)) return 'tiktok';
-  if (/twitter\.com|x\.com/.test(url)) return 'twitter';
-  if (/vimeo\.com/.test(url)) return 'vimeo';
-  return 'web';
+  return res.status(200).json({ title, thumb, author, platform, formats });
 }

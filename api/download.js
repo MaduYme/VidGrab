@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -9,53 +8,48 @@ export default async function handler(req, res) {
   const { url, quality = '1080', audioOnly = false } = req.body;
   if (!url) return res.status(400).json({ error: 'URL is required' });
 
-  const qualities = audioOnly ? ['max'] : [quality, 'max', '1080', '720'];
+  // Quality fallback chain
+  const qualities = audioOnly ? ['max'] : [quality, 'max', '1080', '720', '480'];
   let lastError = null;
 
   for (const q of qualities) {
     try {
-      const body = {
-        url,
-        videoQuality: audioOnly ? 'max' : q,
-        audioFormat: 'mp3',
-        downloadMode: audioOnly ? 'audio' : 'auto',
-      };
-
       const response = await fetch('https://api.cobalt.tools/api/json', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          url,
+          vQuality: q,
+          aFormat: 'mp3',
+          downloadMode: audioOnly ? 'audio' : 'auto',
+          isNoTTWatermark: true,
+        }),
       });
 
       const data = await response.json();
 
-      if (data.url || data.picker) {
-        // Handle picker (multiple streams)
-        if (data.picker) {
-          const formatted = data.picker.map((item, i) => ({
-            quality: item.quality || `Option ${i+1}`,
-            url: item.url,
-            type: 'video',
-          }));
-          return res.status(200).json({
-            success: true,
-            type: 'picker',
-            formats: formatted,
-            title: data.filename || url,
-            platform: data.service || 'unknown',
-          });
-        }
-
+      if (data.url) {
         return res.status(200).json({
           success: true,
-          type: 'single',
           directUrl: data.url,
-          title: data.filename || url,
-          platform: data.service || 'unknown',
+          type: 'single',
           quality: q,
+        });
+      }
+
+      if (data.picker && data.picker.length > 0) {
+        return res.status(200).json({
+          success: true,
+          type: 'picker',
+          directUrl: data.picker[0].url,
+          formats: data.picker.map(item => ({
+            url: item.url,
+            quality: item.quality || '',
+            type: 'video',
+          })),
         });
       }
 
@@ -65,5 +59,5 @@ export default async function handler(req, res) {
     }
   }
 
-  return res.status(500).json({ error: 'Could not get download link', details: lastError });
+  return res.status(500).json({ success: false, error: lastError });
 }
