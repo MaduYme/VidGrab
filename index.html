@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>VidGrab — Download Any Video Free</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+:root{
+  --bg:#06070f;--s1:#0b0c1a;--s2:#101120;
+  --border:#1c1d30;--b2:#252640;
+  --p:#7c6ff7;--p2:#a89df9;--g:#0fd4a8;
+  --r:#f66;--y:#f5c518;
+  --w:#eeeef8;--w2:rgba(238,238,248,.5);--w3:rgba(238,238,248,.18);
+}
+html,body{min-height:100%;background:var(--bg);color:var(--w);font-family:'Plus Jakarta Sans',sans-serif;overflow-x:hidden}
+.amb{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.amb-c{position:absolute;border-radius:50%;filter:blur(140px);opacity:.08}
+.a1{width:700px;height:700px;background:#6c5ce7;top:-200px;left:-150px}
+.a2{width:600px;height:600px;background:#0fd4a8;bottom:-200px;right:-150px}
+.a3{width:400px;height:400px;background:#a29bfe;top:35%;left:35%;animation:afloat 20s ease-in-out infinite}
+@keyframes afloat{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-20px)}}
+
+nav{position:fixed;top:0;inset-inline:0;z-index:100;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 40px;background:rgba(6,7,15,.9);border-bottom:1px solid rgba(255,255,255,.06);backdrop-filter:blur(20px)}
+.nav-logo{font-size:20px;font-weight:800;letter-spacing:-.03em;display:flex;align-items:center;gap:9px}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--g);animation:blink 2.5s ease-in-out infinite}
+@keyframes blink{50%{opacity:.2}}
+.nav-logo span{color:var(--p2)}
+.nav-pill{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;padding:4px 11px;border:1px solid rgba(124,111,247,.3);color:var(--p2);border-radius:99px}
+
+/* HERO */
+.hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px 60px;text-align:center}
+.hero-eye{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--g);margin-bottom:20px;display:flex;align-items:center;gap:10px;justify-content:center}
+.hero-eye::before,.hero-eye::after{content:'';width:28px;height:1px;background:var(--g);opacity:.5}
+h1{font-size:clamp(40px,8vw,84px);font-weight:800;line-height:.88;letter-spacing:-.04em;margin-bottom:18px}
+h1 .grad{display:block;background:linear-gradient(135deg,var(--p2),var(--g));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:15px;font-weight:400;color:var(--w2);line-height:1.72;max-width:480px;margin:0 auto 40px}
+
+/* SEARCH BOX */
+.search-wrap{width:100%;max-width:680px}
+.search-box{display:flex;align-items:center;gap:10px;background:var(--s1);border:1.5px solid var(--b2);border-radius:16px;padding:8px 8px 8px 20px;transition:border-color .25s,box-shadow .25s}
+.search-box:focus-within{border-color:var(--p);box-shadow:0 0 0 4px rgba(124,111,247,.12)}
+#url-in{flex:1;background:transparent;border:none;outline:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;color:var(--w);padding:8px 0}
+#url-in::placeholder{color:var(--w3)}
+.btn-go{background:linear-gradient(135deg,var(--p),var(--p2));border:none;color:#fff;border-radius:11px;padding:12px 26px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;transition:opacity .18s,transform .1s;flex-shrink:0}
+.btn-go:hover{opacity:.88}.btn-go:active{transform:scale(.97)}
+.btn-go:disabled{opacity:.45;cursor:not-allowed}
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .65s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* PLATFORMS */
+.plats{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.plat{display:flex;align-items:center;gap:5px;padding:5px 12px;background:var(--s1);border:1px solid var(--border);border-radius:99px;font-size:11px;font-weight:500;color:var(--w3)}
+.plat.yt{border-color:rgba(246,102,102,.2);color:#f66}
+.plat.fb{border-color:rgba(124,111,247,.25);color:var(--p2)}
+.plat.ig{border-color:rgba(245,197,24,.2);color:var(--y)}
+.plat.tt{border-color:rgba(15,212,168,.2);color:var(--g)}
+
+/* STATUS */
+#st-wrap{width:100%;max-width:680px;margin-top:14px;display:none}
+.st-bar{display:flex;align-items:center;gap:10px;padding:13px 18px;background:var(--s1);border:1px solid var(--b2);border-radius:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--w2)}
+.st-bar.ok{border-color:rgba(15,212,168,.3);color:var(--g)}
+.st-bar.err{border-color:rgba(246,102,102,.3);color:var(--r)}
+.st-dot{width:7px;height:7px;border-radius:50%;background:var(--p);animation:blink .9s ease-in-out infinite;flex-shrink:0}
+.st-bar.ok .st-dot{background:var(--g);animation:none}
+.st-bar.err .st-dot{background:var(--r);animation:none}
+
+/* VIDEO CARD */
+#res-wrap{width:100%;max-width:680px;margin-top:12px;display:none}
+.vid-card{background:var(--s1);border:1.5px solid var(--b2);border-radius:18px;overflow:hidden}
+
+/* Video info */
+.vid-info{display:flex;gap:14px;padding:18px 20px;border-bottom:1px solid var(--border)}
+.vid-thumb{width:120px;height:68px;object-fit:cover;border-radius:8px;background:var(--border);flex-shrink:0}
+.vid-thumb-ph{width:120px;height:68px;border-radius:8px;background:linear-gradient(135deg,var(--s2),var(--border));flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px}
+.vid-meta{flex:1;min-width:0}
+.vid-title{font-size:14px;font-weight:700;line-height:1.4;margin-bottom:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vid-tags{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.vid-plat{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:5px}
+.vp-yt{background:rgba(246,102,102,.12);color:#f66;border:1px solid rgba(246,102,102,.25)}
+.vp-fb{background:rgba(124,111,247,.12);color:var(--p2);border:1px solid rgba(124,111,247,.25)}
+.vp-ig{background:rgba(245,197,24,.12);color:var(--y);border:1px solid rgba(245,197,24,.25)}
+.vp-web{background:rgba(15,212,168,.12);color:var(--g);border:1px solid rgba(15,212,168,.25)}
+.vid-author{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--w3)}
+
+/* FORMAT TABS */
+.fmt-tabs{display:flex;gap:0;padding:14px 20px 0;border-bottom:1px solid var(--border)}
+.fmt-tab{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:8px 16px;cursor:pointer;transition:all .18s;color:var(--w3);border-bottom:2px solid transparent;margin-bottom:-1px}
+.fmt-tab.on{color:var(--p2);border-bottom-color:var(--p2)}
+.fmt-tab:hover{color:var(--w)}
+
+/* FORMAT GRID */
+.fmt-body{padding:14px 18px 20px}
+.fmt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fmt-btn{
+  display:flex;align-items:center;gap:10px;padding:12px 14px;
+  background:var(--s2);border:1.5px solid var(--border);border-radius:11px;
+  cursor:pointer;transition:all .2s;text-align:left;
+  position:relative;overflow:hidden;
+}
+.fmt-btn:hover{border-color:var(--p);background:rgba(124,111,247,.06)}
+.fmt-btn.active{border-color:var(--p);background:rgba(124,111,247,.1)}
+.fmt-btn.downloading{border-color:var(--g);background:rgba(15,212,168,.08);cursor:wait}
+.fmt-ico{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.ic-4k{background:linear-gradient(135deg,rgba(15,212,168,.25),rgba(15,212,168,.08))}
+.ic-hd{background:linear-gradient(135deg,rgba(124,111,247,.22),rgba(124,111,247,.06))}
+.ic-sd{background:rgba(255,255,255,.06)}
+.ic-au{background:linear-gradient(135deg,rgba(245,197,24,.2),rgba(245,197,24,.06))}
+.fmt-info{flex:1;min-width:0}
+.fmt-label{font-size:13px;font-weight:700;margin-bottom:2px;display:flex;align-items:center;gap:6px}
+.fmt-sub{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--w3)}
+.q-badge{font-size:8px;font-weight:700;letter-spacing:.08em;padding:2px 5px;border-radius:4px}
+.q-4k{background:rgba(15,212,168,.15);color:var(--g);border:1px solid rgba(15,212,168,.3)}
+.q-hd{background:rgba(124,111,247,.15);color:var(--p2);border:1px solid rgba(124,111,247,.3)}
+.q-sd{background:rgba(255,255,255,.07);color:var(--w3);border:1px solid rgba(255,255,255,.12)}
+.fmt-arrow{color:var(--w3);font-size:14px;flex-shrink:0;transition:transform .18s}
+.fmt-btn:hover .fmt-arrow,.fmt-btn.active .fmt-arrow{color:var(--p2);transform:translateX(2px)}
+.fmt-btn.downloading .fmt-arrow{color:var(--g)}
+
+/* Download progress overlay */
+.fmt-btn .dl-progress{
+  position:absolute;bottom:0;left:0;height:2px;background:var(--g);
+  width:0%;transition:width .3s;border-radius:0 0 0 0;
+}
+.fmt-btn.downloading .dl-progress{width:100%;transition:width 2s}
+
+/* Direct download button */
+.dl-direct{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:13px;margin-top:10px;
+  background:linear-gradient(135deg,var(--p),var(--p2));
+  border:none;border-radius:10px;color:#fff;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;text-decoration:none;transition:opacity .18s;
+  display:none;
+}
+.dl-direct:hover{opacity:.85}
+.dl-direct svg{width:15px;height:15px}
+
+/* FEATURES */
+.feats{position:relative;z-index:1;width:100%;max-width:900px;margin:0 auto;padding:60px 24px}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.feat-card{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:22px;transition:border-color .2s}
+.feat-card:hover{border-color:var(--b2)}
+.feat-icon{font-size:26px;margin-bottom:10px}
+.feat-t{font-size:14px;font-weight:700;margin-bottom:6px}
+.feat-b{font-size:12px;color:var(--w2);line-height:1.65}
+
+/* HOW TO */
+.howto{position:relative;z-index:1;width:100%;max-width:900px;margin:0 auto;padding:0 24px 60px}
+.sec-eye{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--p2);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sec-eye::before{content:'';width:16px;height:1px;background:var(--p2)}
+.sec-h{font-size:clamp(24px,4vw,36px);font-weight:800;letter-spacing:-.03em;margin-bottom:24px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.step{padding:20px;background:var(--s1);border:1px solid var(--border);border-radius:13px}
+.step-n{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--p2);margin-bottom:8px}
+.step-t{font-size:14px;font-weight:700;margin-bottom:6px}
+.step-b{font-size:12px;color:var(--w2);line-height:1.65}
+
+footer{position:relative;z-index:1;background:var(--s1);border-top:1px solid var(--border);padding:28px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+.ft-logo{font-size:17px;font-weight:800;letter-spacing:-.02em}
+.ft-logo span{color:var(--p2)}
+.ft-note{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--w3)}
+
+@media(max-width:640px){
+  nav{padding:0 18px}
+  .feat-grid,.steps{grid-template-columns:1fr}
+  .fmt-grid{grid-template-columns:1fr}
+  .vid-info{flex-direction:column}
+  .vid-thumb,.vid-thumb-ph{width:100%;height:150px}
+  footer{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<div class="amb">
+  <div class="amb-c a1"></div>
+  <div class="amb-c a2"></div>
+  <div class="amb-c a3"></div>
+</div>
+
+<nav>
+  <div class="nav-logo"><div class="nav-dot"></div>Vid<span>Grab</span></div>
+  <div class="nav-pill">Free · No Login · Cobalt Powered</div>
+</nav>
+
+<div class="hero">
+  <div class="hero-eye">Real Direct Download Links · All Qualities</div>
+  <h1>Download any video<br><span class="grad">4K · HD · MP3</span></h1>
+  <p class="hero-sub">Paste any URL — get direct download links instantly. YouTube, Facebook, Instagram, TikTok and 100+ sites. No redirects.</p>
+
+  <div class="search-wrap">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="18" height="18" style="color:var(--w3);flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="url-in" type="url" placeholder="Paste video URL — YouTube, Facebook, Instagram, TikTok..."/>
+      <button class="btn-go" id="btn-go">
+        <div class="spin" id="spin"></div>
+        <span id="btn-txt">Analyze</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="plats">
+    <div class="plat yt">▶ YouTube</div>
+    <div class="plat fb">⬡ Facebook</div>
+    <div class="plat ig">◎ Instagram</div>
+    <div class="plat tt">♪ TikTok</div>
+    <div class="plat">🌐 100+ Sites</div>
+  </div>
+
+  <div id="st-wrap">
+    <div class="st-bar" id="st-bar">
+      <div class="st-dot"></div>
+      <span id="st-txt">Analyzing...</span>
+    </div>
+  </div>
+
+  <div id="res-wrap">
+    <div class="vid-card">
+      <!-- Video info -->
+      <div class="vid-info">
+        <div class="vid-thumb-ph" id="vid-thumb">🎬</div>
+        <div class="vid-meta">
+          <div class="vid-title" id="vid-title">—</div>
+          <div class="vid-tags">
+            <span class="vid-plat vp-web" id="vid-plat">Web</span>
+            <span class="vid-author" id="vid-author"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Format tabs -->
+      <div class="fmt-tabs">
+        <div class="fmt-tab on" data-tab="video">🎬 Video</div>
+        <div class="fmt-tab" data-tab="audio">🎵 Audio Only</div>
+      </div>
+
+      <!-- Format grid -->
+      <div class="fmt-body">
+        <div class="fmt-grid" id="fmt-grid"></div>
+        <a class="dl-direct" id="dl-direct" href="#" target="_blank">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Now
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div class="feats">
+  <div class="feat-grid">
+    <div class="feat-card"><div class="feat-icon">⚡</div><div class="feat-t">Direct Download Links</div><div class="feat-b">Powered by Cobalt API. Get real direct mp4/mp3 links — not pages, not redirects.</div></div>
+    <div class="feat-card"><div class="feat-icon">🎯</div><div class="feat-t">100+ Platforms</div><div class="feat-b">YouTube, Facebook, Instagram, TikTok, Twitter, Vimeo, Twitch and many more.</div></div>
+    <div class="feat-card"><div class="feat-icon">🔒</div><div class="feat-t">No Login Required</div><div class="feat-b">100% free. No account, no signup, no tracking. Just paste and download.</div></div>
+    <div class="feat-card"><div class="feat-icon">🎬</div><div class="feat-t">Up to 4K Quality</div><div class="feat-b">Choose exact quality — 4K, 1080p, 720p, 480p, 360p or MP3/M4A audio.</div></div>
+    <div class="feat-card"><div class="feat-icon">📱</div><div class="feat-t">All Devices</div><div class="feat-b">Works on desktop, tablet and mobile. Any browser, any OS.</div></div>
+    <div class="feat-card"><div class="feat-icon">🎵</div><div class="feat-t">MP3 Audio Extract</div><div class="feat-b">Download just the audio in MP3 or M4A format. Perfect for music and podcasts.</div></div>
+  </div>
+</div>
+
+<!-- HOW TO -->
+<div class="howto">
+  <div class="sec-eye">3 simple steps</div>
+  <div class="sec-h">How to use VidGrab</div>
+  <div class="steps">
+    <div class="step"><div class="step-n">01 ——</div><div class="step-t">Paste URL</div><div class="step-b">Copy any video URL from YouTube, Facebook, Instagram or any site.</div></div>
+    <div class="step"><div class="step-n">02 ——</div><div class="step-t">Choose Quality</div><div class="step-b">Select your quality — 4K, 1080p, 720p, or audio only. One click.</div></div>
+    <div class="step"><div class="step-n">03 ——</div><div class="step-t">Direct Download</div><div class="step-b">File downloads directly to your device. No extra steps, no redirects.</div></div>
+  </div>
+</div>
+
+<footer>
+  <div class="ft-logo">Vid<span>Grab</span></div>
+  <div class="ft-note">Powered by Cobalt · For personal use only · Respect copyright</div>
+</footer>
+
+<script>
+const urlIn  = document.getElementById('url-in');
+const btnGo  = document.getElementById('btn-go');
+const btnTxt = document.getElementById('btn-txt');
+const spinEl = document.getElementById('spin');
+const stWrap = document.getElementById('st-wrap');
+const stBar  = document.getElementById('st-bar');
+const stTxt  = document.getElementById('st-txt');
+const resWrap= document.getElementById('res-wrap');
+const fmtGrid= document.getElementById('fmt-grid');
+const dlDirect=document.getElementById('dl-direct');
+
+let currentFormats = {video:[], audio:[]};
+let currentTab = 'video';
+let currentUrl = '';
+
+function detect(url){
+  if(/youtube\.com|youtu\.be/.test(url))return'youtube';
+  if(/facebook\.com|fb\.watch/.test(url))return'facebook';
+  if(/instagram\.com/.test(url))return'instagram';
+  if(/tiktok\.com/.test(url))return'tiktok';
+  if(/twitter\.com|x\.com/.test(url))return'twitter';
+  if(/vimeo\.com/.test(url))return'vimeo';
+  return'web';
+}
+function platLabel(p){return{youtube:'YouTube',facebook:'Facebook',instagram:'Instagram',tiktok:'TikTok',twitter:'X/Twitter',vimeo:'Vimeo',web:'Website'}[p]||'Web';}
+function platClass(p){return{youtube:'vp-yt',facebook:'vp-fb',instagram:'vp-ig'}[p]||'vp-web';}
+
+function setLoading(on){
+  btnGo.disabled=on;
+  spinEl.style.display=on?'block':'none';
+  btnTxt.textContent=on?'Analyzing...':'Analyze';
+}
+function setStatus(msg,type=''){
+  stWrap.style.display='block';
+  stBar.className='st-bar'+(type?' '+type:'');
+  stTxt.textContent=msg;
+}
+
+// Format tabs
+document.querySelectorAll('.fmt-tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.fmt-tab').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    currentTab=t.dataset.tab;
+    renderFormats();
+  });
+});
+
+function getFormatConfig(fmt, isAudio){
+  const q = fmt.quality || '';
+  const n = parseInt(q);
+  if(isAudio) return {ico:'ic-au', emoji:'🎵', badge:''};
+  if(n>=2160) return {ico:'ic-4k', emoji:'⬛', badge:'<span class="q-badge q-4k">4K</span>'};
+  if(n>=1080) return {ico:'ic-hd', emoji:'🟣', badge:'<span class="q-badge q-hd">FHD</span>'};
+  if(n>=720)  return {ico:'ic-hd', emoji:'🔵', badge:'<span class="q-badge q-hd">HD</span>'};
+  return {ico:'ic-sd', emoji:'⚪', badge:'<span class="q-badge q-sd">SD</span>'};
+}
+
+function renderFormats(){
+  const fmts = currentFormats[currentTab]||[];
+  fmtGrid.innerHTML='';
+  dlDirect.style.display='none';
+
+  if(!fmts.length){
+    fmtGrid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--w3);font-family:'JetBrains Mono',monospace;font-size:11px">No ${currentTab} formats available</div>`;
+    return;
+  }
+
+  fmts.forEach(fmt=>{
+    const isAudio = currentTab==='audio';
+    const cfg = getFormatConfig(fmt, isAudio);
+    const label = isAudio ? (fmt.label||'Audio') : (fmt.label||fmt.quality||'Video');
+    const sub = fmt.ext ? fmt.ext.toUpperCase() : (isAudio?'MP3':'MP4');
+
+    const btn = document.createElement('button');
+    btn.className='fmt-btn';
+    btn.innerHTML=`
+      <div class="fmt-ico ${cfg.ico}">${cfg.emoji}</div>
+      <div class="fmt-info">
+        <div class="fmt-label">${label} ${cfg.badge}</div>
+        <div class="fmt-sub">${sub} · Direct download</div>
+      </div>
+      <div class="fmt-arrow">→</div>
+      <div class="dl-progress"></div>`;
+
+    btn.addEventListener('click', ()=>doDownload(fmt, btn, isAudio));
+    fmtGrid.appendChild(btn);
+  });
+}
+
+async function doDownload(fmt, btn, isAudio){
+  // Visual feedback
+  document.querySelectorAll('.fmt-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active','downloading');
+  setStatus(`Getting ${isAudio?'audio':'video'} download link...`);
+
+  try{
+    const res = await fetch('/api/download',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        url: currentUrl,
+        quality: fmt.quality||'max',
+        audioOnly: isAudio,
+      })
+    });
+    const data = await res.json();
+
+    if(data.directUrl){
+      // Direct download
+      setStatus(`✓ Download ready — starting now!`, 'ok');
+      btn.classList.remove('downloading');
+
+      // Show direct link button
+      dlDirect.href = data.directUrl;
+      dlDirect.style.display = 'flex';
+      dlDirect.textContent = '';
+      dlDirect.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="15" height="15"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download ${fmt.label||fmt.quality||'Video'} — Click here`;
+
+      // Auto-trigger download
+      const a = document.createElement('a');
+      a.href = data.directUrl;
+      a.download = data.title||'video';
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+    } else if(data.formats){
+      // Picker — show multiple
+      setStatus(`✓ Found ${data.formats.length} options`, 'ok');
+      btn.classList.remove('downloading');
+      currentFormats[currentTab] = data.formats;
+      renderFormats();
+    } else {
+      throw new Error(data.error||'No download link returned');
+    }
+  } catch(e){
+    setStatus('⚠ '+e.message, 'err');
+    btn.classList.remove('active','downloading');
+  }
+}
+
+async function doAnalyze(){
+  const url = urlIn.value.trim();
+  if(!url){urlIn.focus();return;}
+  if(!/^https?:\/\//.test(url)){
+    setStatus('⚠ Enter a valid URL starting with https://','err');
+    stWrap.style.display='block';return;
+  }
+
+  currentUrl = url;
+  setLoading(true);
+  resWrap.style.display='none';
+  dlDirect.style.display='none';
+  const p=detect(url);
+  setStatus(`Detected: ${platLabel(p)} — fetching video info...`);
+
+  try{
+    // Get video info + format list
+    const res = await fetch('/api/info',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url})
+    });
+    const info = await res.json();
+
+    // Set video info UI
+    document.getElementById('vid-title').textContent = info.title||platLabel(p)+' Video';
+    const platEl = document.getElementById('vid-plat');
+    platEl.textContent = platLabel(p);
+    platEl.className = 'vid-plat '+platClass(p);
+    document.getElementById('vid-author').textContent = info.author ? `👤 ${info.author}` : '';
+
+    if(info.thumb){
+      const img = document.createElement('img');
+      img.src=info.thumb; img.className='vid-thumb'; img.alt='';
+      img.onerror=()=>{};
+      document.getElementById('vid-thumb').replaceWith(img);
+    }
+
+    // Separate video/audio
+    currentFormats = {
+      video: (info.formats||[]).filter(f=>f.type==='video'),
+      audio: (info.formats||[]).filter(f=>f.type==='audio'),
+    };
+
+    // Reset to video tab
+    document.querySelectorAll('.fmt-tab').forEach(t=>{t.classList.remove('on')});
+    document.querySelector('[data-tab="video"]').classList.add('on');
+    currentTab='video';
+    renderFormats();
+
+    setStatus(`✓ ${(info.formats||[]).length} formats ready — choose quality below`,'ok');
+    resWrap.style.display='block';
+    resWrap.scrollIntoView({behavior:'smooth',block:'nearest'});
+
+  }catch(e){
+    setStatus('⚠ '+e.message,'err');
+  }
+  setLoading(false);
+}
+
+btnGo.addEventListener('click', doAnalyze);
+urlIn.addEventListener('keydown', e=>{ if(e.key==='Enter') doAnalyze(); });
+</script>
+</body>
+</html>
